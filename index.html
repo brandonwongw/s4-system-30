@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校園跑腿互助</title>
+    <style>
+        :root {
+            --color-primary: #FF6B35;
+            --color-primary-hover: #E55A2B;
+            --color-active: #2EC4B6;
+            --color-active-bg: #E8FAF8;
+            --color-done: #9CA3AF;
+            --color-done-bg: #F3F4F6;
+            --color-bg: #F8F9FA;
+            --color-card: #FFFFFF;
+            --color-text: #1F2937;
+            --color-text-secondary: #6B7280;
+            --color-border: #E5E7EB;
+            --color-danger: #EF4444;
+            --color-danger-hover: #DC2626;
+            --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+            --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+            background-color: #F0F2F5;
+            color: var(--color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ========== 頁面背景裝飾 ========== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -180px;
+            right: -120px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255, 107, 53, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -140px;
+            left: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(46, 196, 182, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ========== 主容器 ========== */
+        .app-container {
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 24px 16px 48px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========== 頁首 ========== */
+        .app-header {
+            text-align: center;
+            padding: 28px 20px 20px;
+            margin-bottom: 24px;
+        }
+        .app-header .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 6px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+        @keyframes bounce {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+            50% {
+                transform: translateY(0);
+            }
+            70% {
+                transform: translateY(-5px);
+            }
+            85% {
+                transform: translateY(0);
+            }
+        }
+        .app-header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1F2937;
+            letter-spacing: -0.02em;
+        }
+        .app-header .subtitle {
+            font-size: 0.9rem;
+            color: #6B7280;
+            margin-top: 2px;
+        }
+
+        /* ========== 表單卡片 ========== */
+        .form-card {
+            background: var(--color-card);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--color-border);
+            transition: var(--transition);
+        }
+        .form-card:hover {
+            box-shadow: var(--shadow-card-hover);
+        }
+        .form-card__title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #374151;
+        }
+        .form-card__title .emoji {
+            font-size: 1.3rem;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+            color: #4B5563;
+        }
+        .form-group label .required {
+            color: var(--color-danger);
+            margin-left: 2px;
+        }
+        .form-group label .optional {
+            color: #9CA3AF;
+            font-weight: 400;
+            font-size: 0.78rem;
+            margin-left: 4px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: var(--transition);
+            background: #FAFBFC;
+            color: var(--color-text);
+            resize: vertical;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            background: #FFF;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #C5C9CE;
+        }
+        .form-group textarea {
+            min-height: 72px;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 12px 20px;
+            background: var(--color-primary);
+            color: #FFF;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 0.01em;
+            font-family: inherit;
+            margin-top: 4px;
+        }
+        .btn-submit:hover {
+            background: var(--color-primary-hover);
+            box-shadow: 0 4px 14px rgba(255, 107, 53, 0.35);
+            transform: translateY(-1px);
+        }
+        .btn-submit:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(255, 107, 53, 0.25);
+        }
+
+        /* ========== 篩選區 ========== */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-bar__label {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #4B5563;
+            margin-right: 4px;
+            white-space: nowrap;
+        }
+        .filter-btn {
+            padding: 8px 18px;
+            border: 2px solid var(--color-border);
+            border-radius: 24px;
+            background: #FFF;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: var(--transition);
+            font-family: inherit;
+            color: #4B5563;
+            white-space: nowrap;
+        }
+        .filter-btn:hover {
+            border-color: #D1D5DB;
+            background: #F9FAFB;
+        }
+        .filter-btn--active {
+            background: #1F2937;
+            color: #FFF;
+            border-color: #1F2937;
+            font-weight: 600;
+        }
+        .filter-btn--active:hover {
+            background: #374151;
+            border-color: #374151;
+        }
+        .filter-count {
+            font-size: 0.8rem;
+            color: #9CA3AF;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        /* ========== 卡片網格 ========== */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        @media (min-width: 600px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (min-width: 860px) {
+            .cards-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* ========== 單張任務卡片 ========== */
+        .task-card {
+            background: var(--color-card);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            box-shadow: var(--shadow-card);
+            border: 2px solid var(--color-active);
+            transition: var(--transition);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            animation: cardIn 0.35s ease-out;
+        }
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .task-card:hover {
+            box-shadow: var(--shadow-card-hover);
+            transform: translateY(-2px);
+        }
+
+        /* done 狀態卡片 */
+        .task-card--done {
+            border-color: var(--color-done);
+            background: var(--color-done-bg);
+            opacity: 0.78;
+        }
+        .task-card--done:hover {
+            opacity: 0.9;
+            box-shadow: var(--shadow-card);
+            transform: translateY(-1px);
+        }
+        .task-card--done .task-card__task-text {
+            text-decoration: line-through;
+            text-decoration-color: #9CA3AF;
+            text-decoration-thickness: 2px;
+            color: #6B7280;
+        }
+
+        /* 卡片內部元素 */
+        .task-card__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .task-card__task-text {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1F2937;
+            line-height: 1.4;
+            flex: 1;
+            word-break: break-word;
+        }
+        .task-card__status-badge {
+            flex-shrink: 0;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        .task-card__status-badge--active {
+            background: var(--color-active-bg);
+            color: #0D9488;
+            border: 1px solid #99F6E4;
+        }
+        .task-card__status-badge--done {
+            background: #E5E7EB;
+            color: #6B7280;
+            border: 1px solid #D1D5DB;
+        }
+
+        .task-card__info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.85rem;
+            color: #4B5563;
+        }
+        .task-card__info-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .task-card__info-row .info-icon {
+            width: 18px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .task-card__info-row .info-label {
+            font-weight: 500;
+            color: #6B7280;
+            flex-shrink: 0;
+        }
+        .task-card__info-row .info-value {
+            color: #374151;
+            word-break: break-word;
+        }
+        .task-card__reward {
+            font-weight: 700;
+            color: var(--color-primary);
+            font-size: 1.05rem;
+        }
+        .task-card--done .task-card__reward {
+            color: #9CA3AF;
+        }
+
+        .task-card__time {
+            font-size: 0.75rem;
+            color: #9CA3AF;
+            margin-top: 2px;
+        }
+
+        .task-card__actions {
+            margin-top: auto;
+            padding-top: 4px;
+        }
+        .btn-toggle-status {
+            width: 100%;
+            padding: 9px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            border: 2px solid transparent;
+        }
+        .btn-toggle-status--take {
+            background: var(--color-active);
+            color: #FFF;
+            border-color: var(--color-active);
+        }
+        .btn-toggle-status--take:hover {
+            background: #26B3A6;
+            border-color: #26B3A6;
+            box-shadow: 0 3px 10px rgba(46, 196, 182, 0.3);
+        }
+        .btn-toggle-status--reopen {
+            background: transparent;
+            color: #6B7280;
+            border-color: #D1D5DB;
+        }
+        .btn-toggle-status--reopen:hover {
+            background: #FFF;
+            border-color: #9CA3AF;
+            color: #4B5563;
+        }
+
+        /* ========== 空狀態 ========== */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #9CA3AF;
+            grid-column: 1 / -1;
+        }
+        .empty-state .empty-icon {
+            font-size: 56px;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .empty-state p {
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* ========== Toast 提示 ========== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1F2937;
+            color: #FFF;
+            padding: 10px 22px;
+            border-radius: 24px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            z-index: 100;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            box-shadow: var(--shadow-elevated);
+            white-space: nowrap;
+        }
+        .toast--show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ========== RWD 微調 ========== */
+        @media (max-width: 599px) {
+            .app-header h1 {
+                font-size: 1.5rem;
+            }
+            .app-header .icon {
+                font-size: 38px;
+            }
+            .form-card {
+                padding: 18px 16px;
+                border-radius: var(--radius-md);
+            }
+            .task-card {
+                padding: 14px 16px;
+            }
+            .filter-bar {
+                gap: 6px;
+            }
+            .filter-btn {
+                padding: 6px 13px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- 頁首 -->
+        <header class="app-header">
+            <span class="icon">🏃‍♂️</span>
+            <h1>校園跑腿互助</h1>
+            <p class="subtitle">同學互相幫忙，代買代拿好方便</p>
+        </header>
+
+        <!-- 表單區 -->
+        <div class="form-card">
+            <div class="form-card__title">
+                <span class="emoji">📝</span> 發布新任務
+            </div>
+            <form id="taskForm" autocomplete="off">
+                <div class="form-group">
+                    <label for="taskInput">任務內容<span class="required">*</span></label>
+                    <textarea
+                    id="taskInput"
+                    name="task"
+                    placeholder="例如：幫我買一杯珍珠奶茶（微糖去冰）"
+                    required
+                    rows="2"
+                ></textarea>
+            </div>
+            <div class="form-group">
+                <label for="rewardInput">賞金 / 報酬<span class="required">*</span></label>
+                <input
+                type="text"
+                id="rewardInput"
+                name="reward"
+                placeholder="例如：一杯奶茶、50元、一頓飯"
+                required
+            />
+        </div>
+        <div class="form-group">
+            <label for="contactInput">聯絡方式<span class="optional">（選填）</span></label>
+            <input
+            type="text"
+            id="contactInput"
+            name="contact"
+            placeholder="例如：微信 xiaoming、手機 09xx"
+        />
+    </div>
+    <button type="submit" class="btn-submit">🚀 發布任務</button>
+</form>
+</div>
+
+<!-- 篩選區 -->
+<div class="filter-bar">
+    <span class="filter-bar__label">🔍 篩選：</span>
+    <button class="filter-btn filter-btn--active" data-filter="all">全部</button>
+    <button class="filter-btn" data-filter="active">🟢 等待接單</button>
+    <button class="filter-btn" data-filter="done">✅ 已接單</button>
+    <span class="filter-count" id="filterCount"></span>
+</div>
+
+<!-- 卡片列表區 -->
+<div class="cards-grid" id="cardsGrid">
+    <!-- 動態渲染 -->
+</div>
+</div>
+
+<!-- Toast 提示 -->
+<div class="toast" id="toast"></div>
+
+<script>
+    (function() {
+        // ==================== 常數 ====================
+        const STORAGE_KEY = 'records';
+        const STATUS_ACTIVE = 'active';
+        const STATUS_DONE = 'done';
+
+        // ==================== DOM 元素 ====================
+        const taskForm = document.getElementById('taskForm');
+        const taskInput = document.getElementById('taskInput');
+        const rewardInput = document.getElementById('rewardInput');
+        const contactInput = document.getElementById('contactInput');
+        const cardsGrid = document.getElementById('cardsGrid');
+        const filterCountEl = document.getElementById('filterCount');
+        const toastEl = document.getElementById('toast');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        // ==================== 狀態 ====================
+        let currentFilter = 'all'; // 'all' | 'active' | 'done'
+
+        // ==================== Toast ====================
+        let toastTimer = null;
+
+        function showToast(message) {
+            if (toastTimer) clearTimeout(toastTimer);
+            toastEl.textContent = message;
+            toastEl.classList.add('toast--show');
+            toastTimer = setTimeout(() => {
+                toastEl.classList.remove('toast--show');
+                toastTimer = null;
+            }, 1800);
+        }
+
+        // ==================== 輔助函數 ====================
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatDate(isoString) {
+            try {
+                const date = new Date(isoString);
+                return date.toLocaleString('zh-TW', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                });
+            } catch (e) {
+                return isoString;
+            }
+        }
+
+        function generateId() {
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).substring(2, 10);
+            return timestamp + '_' + random;
+        }
+
+        // ==================== 核心函數 ====================
+
+        /**
+         * createRecord(formData)
+         * 根據表單內容建立一筆新 record object
+         * @param {Object} formData - { task, reward, contact }
+         * @returns {Object} record
+         */
+        function createRecord(formData) {
+            return {
+                id: generateId(),
+                createdAt: new Date().toISOString(),
+                status: STATUS_ACTIVE,
+                task: formData.task.trim(),
+                reward: formData.reward.trim(),
+                contact: formData.contact ? formData.contact.trim() : '',
+            };
+        }
+
+        /**
+         * saveData(record)
+         * 新增一筆 record 到 records array，然後寫入 localStorage
+         * @param {Object} record
+         */
+        function saveData(record) {
+            const records = loadData();
+            records.push(record);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        }
+
+        /**
+         * loadData()
+         * 從 localStorage 讀取 records array；沒有資料就回傳 []
+         * @returns {Array} records
+         */
+        function loadData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return [];
+                const parsed = JSON.parse(raw);
+                // 確保是陣列
+                if (!Array.isArray(parsed)) return [];
+                return parsed;
+            } catch (e) {
+                console.warn('loadData: localStorage 讀取失敗，回傳空陣列', e);
+                return [];
+            }
+        }
+
+        /**
+         * updateRecord(id, changes)
+         * 只負責更新一筆 record，然後寫入 localStorage
+         * @param {string} id
+         * @param {Object} changes - 要更新的欄位，例如 { status: 'done' }
+         */
+        function updateRecord(id, changes) {
+            const records = loadData();
+            const targetIndex = records.findIndex((r) => r.id === id);
+            if (targetIndex === -1) {
+                console.warn('updateRecord: 找不到 id =', id);
+                return;
+            }
+            // 合併更新
+            records[targetIndex] = { ...records[targetIndex], ...changes };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        }
+
+        /**
+         * renderList(recordsToShow)
+         * 把 records 顯示到頁面（卡片樣式）
+         * @param {Array} recordsToShow
+         */
+        function renderList(recordsToShow) {
+            // 更新篩選計數
+            const allRecords = loadData();
+            const activeCount = allRecords.filter((r) => r.status === STATUS_ACTIVE).length;
+            const doneCount = allRecords.filter((r) => r.status === STATUS_DONE).length;
+            filterCountEl.textContent = `（共 ${allRecords.length} 筆：${activeCount} 等待 / ${doneCount} 已接單）`;
+
+            // 清空容器
+            cardsGrid.innerHTML = '';
+
+            // 空狀態
+            if (recordsToShow.length === 0) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'empty-state';
+                let emptyMsg = '';
+                if (currentFilter === 'active') {
+                    emptyMsg = '<span class="empty-icon">🎉</span><p>目前沒有等待接單的任務</p><p style="font-size:0.8rem;margin-top:4px;">快來發布一個新任務吧！</p>';
+                } else if (currentFilter === 'done') {
+                    emptyMsg = '<span class="empty-icon">📭</span><p>尚無已接單的任務</p>';
+                } else {
+                    emptyMsg = '<span class="empty-icon">📋</span><p>還沒有任何跑腿任務</p><p style="font-size:0.8rem;margin-top:4px;">填寫上方表單，發布第一個任務！</p>';
+                }
+                emptyDiv.innerHTML = emptyMsg;
+                cardsGrid.appendChild(emptyDiv);
+                return;
+            }
+
+            // 渲染每張卡片
+            recordsToShow.forEach((record) => {
+                const isDone = record.status === STATUS_DONE;
+                const card = document.createElement('div');
+                card.className = 'task-card' + (isDone ? ' task-card--done' : '');
+                card.setAttribute('data-id', record.id);
+
+                // 狀態標籤
+                const badgeClass = isDone ?
+                    'task-card__status-badge task-card__status-badge--done' :
+                    'task-card__status-badge task-card__status-badge--active';
+                const badgeText = isDone ? '✅ 已接單' : '🟢 等待接單';
+
+                // 聯絡方式行（有才顯示）
+                const contactRow = record.contact ?
+                    `
+                <div class="task-card__info-row">
+                  <span class="info-icon">📞</span>
+                  <span class="info-label">聯絡：</span>
+                  <span class="info-value">${escapeHtml(record.contact)}</span>
+                </div>` :
+                    '';
+
+                // 按鈕
+                const btnClass = isDone ?
+                    'btn-toggle-status btn-toggle-status--reopen' :
+                    'btn-toggle-status btn-toggle-status--take';
+                const btnText = isDone ? '🔄 重新開放' : '✋ 我要接單';
+
+                card.innerHTML = `
+                <div class="task-card__header">
+                  <span class="task-card__task-text">${escapeHtml(record.task)}</span>
+                  <span class="${badgeClass}">${badgeText}</span>
+                </div>
+                <div class="task-card__info">
+                  <div class="task-card__info-row">
+                    <span class="info-icon">💰</span>
+                    <span class="info-label">賞金：</span>
+                    <span class="info-value task-card__reward">${escapeHtml(record.reward)}</span>
+                  </div>
+                  ${contactRow}
+                </div>
+                <div class="task-card__time">📅 發布時間：${formatDate(record.createdAt)}</div>
+                <div class="task-card__actions">
+                  <button class="${btnClass}" data-action="toggle" data-id="${record.id}">
+                    ${btnText}
+                  </button>
+                </div>
+              `;
+
+                cardsGrid.appendChild(card);
+            });
+
+            // 綁定切換按鈕事件
+            const toggleBtns = cardsGrid.querySelectorAll('[data-action="toggle"]');
+            toggleBtns.forEach((btn) => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    handleToggleStatus(id);
+                });
+            });
+        }
+
+        // ==================== 畫面更新 ====================
+        function refreshView() {
+            const allRecords = loadData();
+            let filtered;
+            if (currentFilter === 'all') {
+                filtered = allRecords;
+            } else if (currentFilter === 'active') {
+                filtered = allRecords.filter((r) => r.status === STATUS_ACTIVE);
+            } else if (currentFilter === 'done') {
+                filtered = allRecords.filter((r) => r.status === STATUS_DONE);
+            } else {
+                filtered = allRecords;
+            }
+            renderList(filtered);
+            updateFilterButtons();
+        }
+
+        function updateFilterButtons() {
+            filterBtns.forEach((btn) => {
+                const filterVal = btn.getAttribute('data-filter');
+                if (filterVal === currentFilter) {
+                    btn.classList.add('filter-btn--active');
+                } else {
+                    btn.classList.remove('filter-btn--active');
+                }
+            });
+        }
+
+        // ==================== 事件處理 ====================
+
+        // 表單提交
+        taskForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const taskVal = taskInput.value;
+            const rewardVal = rewardInput.value;
+            const contactVal = contactInput.value;
+
+            // 驗證必填
+            if (!taskVal.trim()) {
+                showToast('⚠️ 請填寫任務內容');
+                taskInput.focus();
+                return;
+            }
+            if (!rewardVal.trim()) {
+                showToast('⚠️ 請填寫賞金 / 報酬');
+                rewardInput.focus();
+                return;
+            }
+
+            // 建立 record
+            const formData = {
+                task: taskVal,
+                reward: rewardVal,
+                contact: contactVal,
+            };
+            const newRecord = createRecord(formData);
+
+            // 儲存
+            saveData(newRecord);
+
+            // 清空表單
+            taskInput.value = '';
+            rewardInput.value = '';
+            contactInput.value = '';
+            taskInput.focus();
+
+            // 切換到「全部」篩選，讓新紀錄可見
+            currentFilter = 'all';
+
+            // 重新渲染
+            refreshView();
+            showToast('✅ 任務發布成功！');
+        });
+
+        // 切換 status
+        function handleToggleStatus(id) {
+            const records = loadData();
+            const record = records.find((r) => r.id === id);
+            if (!record) return;
+
+            const newStatus = record.status === STATUS_ACTIVE ? STATUS_DONE : STATUS_ACTIVE;
+            updateRecord(id, { status: newStatus });
+
+            // 保持當前篩選重新渲染
+            refreshView();
+
+            const msg = newStatus === STATUS_DONE ? '✅ 已接單！任務標記為完成' : '🔄 已重新開放任務';
+            showToast(msg);
+        }
+
+        // 篩選按鈕
+        filterBtns.forEach((btn) => {
+            btn.addEventListener('click', function() {
+                const filterVal = this.getAttribute('data-filter');
+                if (filterVal && filterVal !== currentFilter) {
+                    currentFilter = filterVal;
+                    refreshView();
+                }
+            });
+        });
+
+        // ==================== 初始載入 ====================
+        function init() {
+            currentFilter = 'all';
+            refreshView();
+        }
+
+        // 頁面載入完成後初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+</script>
+</body>
+</html>
